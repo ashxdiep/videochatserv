@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>vchat - a simple video chat app</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+    <script src="https://ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/2.6.0/js/okta-sign-in.min.js" type="text/javascript"></script>
+    <link href="https://ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/2.6.0/css/okta-sign-in.min.css" type="text/css" rel="stylesheet"/>
+    <link href="https://ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/2.6.0/css/okta-theme.css" type="text/css" rel= "stylesheet"/>
+    <link rel = "stylesheet" href= "./static/css/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1><a href="/">vchat</a></h1>
+        <h2><a href="/">a simple video chat app</a></h2>
+      </header>
+
+      <div id="okta-login-container"></div>
+
+      <div class="row">
+        <div class="col"></div>
+        <div class="col-md-auto align-self-center">
+          <p id="login"><b>NOTE</b>: You are not currently logged in. If you'd like to start your own
+            chat room please <button type="button" class="btn btn-light">log in</button></p>
+          <div id="url" class="alert alert-dark" role="alert">
+            <span id="roomIntro">ROOM URL</span>: <span id="roomUrl"></span>
+          </div>
+        </div>
+        <div class="col"></div>
+      </div>
+
+      <div id="remotes" class="row">
+        <div class="col-md-6">
+          <div class="videoContainer">
+            <video id="selfVideo"></video>
+            <meter id="localVolume" class="volume"></meter>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      //OKTA CREDENTIALS/////////
+      var okta = new OktaSignIn({
+        baseUrl: "https://dev-296412.oktapreview.com",
+        clientId: "0oaet90xpdyaTDcHz0h7",
+        authParams:{
+          issuer: "https://dev-296412.oktapreview.com/oauth2/default",
+          responseType: ["token", "id_token"],
+          display: "page"
+        }
+      });
+
+      //Rendering the login form
+      function showLogin(){
+        okta.renderEl({ el: "#okta-login-container"}, function(res) {}, function(err){
+          alert("Couldn't render the login form, something horrible must have happened. Try again nxt time. jk Refresh the page.");
+        });
+      }
+
+      //Handling login
+      function handleLogin(){
+        //if first tiem logging in
+        if( okta.token.hasTokensInUrl()){
+          okta.token.parseTokensFromUrl(
+            function success(res){
+
+              //saving tokens for later use
+              okta.tokenManager.add("accessToken", res[0]);
+              okta.tokenManager.add("idToken", res[1]);
+
+              console.log("user just logged in");
+            }, function error(err){
+              alert("We weren't able to log you in, something terrible must have happened. Try again nxt time. jk, try refreshing.");
+            }
+          );
+        } else {
+          okta.session.get(function(res){
+
+            //if user already logged in
+            if(res.status === 'ACTIVE'){
+              console.log("user already logged in")
+              return;
+            }
+
+            //not logged in, show login form
+            console.log("user not logged in");
+            showLogin();
+          });
+        }
+      }
+
+    handleLogin();
+    </script>
+  </body>
+</html>
